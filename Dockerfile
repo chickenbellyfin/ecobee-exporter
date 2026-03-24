@@ -11,6 +11,7 @@ COPY . .
 RUN printf '#!/bin/sh\nexec python -m ecobee-exporter pair "$@"\n' > /usr/local/bin/pair && \
     chmod +x /usr/local/bin/pair
 
+ENV ECOBEE_DATA_DIR=/data
 EXPOSE 9101
 
 CMD ["python", "-m", "ecobee_exporter", "run"]

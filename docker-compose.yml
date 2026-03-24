@@ -3,9 +3,5 @@ services:
     build: .
     network_mode: host
     volumes:
-      - ./data:/app/data
-    environment:
-      - ECOBEE_PAIRING_FILE=/app/data/pairing.json
-      - ECOBEE_POLL_INTERVAL=300
-      - ECOBEE_METRICS_PORT=9101
+      - ./data:/data
     restart: unless-stopped

@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 
 from . import config
 from .pair import pair
@@ -20,9 +21,9 @@ def main():
 
     pair_parser = subparsers.add_parser("pair", help="Pair with an ecobee thermostat")
     pair_parser.add_argument(
-        "--pairing-file",
-        default=config.PAIRING_FILE,
-        help=f"Path to save pairing data (default: {config.PAIRING_FILE})",
+        "--data-dir",
+        default=config.DATA_DIR,
+        help=f"Directory for pairing and data files (default: $ECOBEE_DATA_DIR or '.')",
     )
 
     subparsers.add_parser("run", help="Start the polling daemon")
@@ -30,7 +31,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == "pair":
-        pair(args.pairing_file)
+        pair(os.path.join(args.data_dir, "pairing.json"))
     elif args.command == "run":
         run()
 

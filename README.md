@@ -15,41 +15,25 @@ Reads sensor data from an ecobee thermostat over the local network via HomeKit A
 | `ecobee_last_poll_timestamp_seconds` | Gauge | — | Unix timestamp of last successful poll |
 | `ecobee_poll_errors_total` | Counter | — | Total failed poll attempts |
 
-## Prerequisites
-
-- ecobee thermostat with HomeKit enabled
-- HomeKit setup code (8-digit code from the ecobee or its packaging)
-- Python 3.10+
-
-## Setup
-
-```bash
-pip install -r requirements.txt
-```
-
-## Pairing (one-time)
-
-Run interactively on the same network as the ecobee:
-
-```bash
-python -m ecobee_exporter pair --pairing-file ./pairing.json
-```
-
-This discovers the ecobee via mDNS, prompts for the HomeKit setup code, and saves pairing credentials. The ecobee supports up to 16 controller pairings, so this won't interfere with Apple Home.
-
-## Running
-
-```bash
-# Using environment variables
-export ECOBEE_PAIRING_FILE=./pairing.json
-export ECOBEE_POLL_INTERVAL=300
-export ECOBEE_METRICS_PORT=9101
-python -m ecobee_exporter run
-```
-
-Metrics are served at `http://localhost:9101/metrics`.
-
 ## Docker
+
+### docker-compose.yml
+
+```yaml
+services: # :9101
+  ecobee-exporter:
+    image: ghcr.io/chickenbellyfin/ecobee-exporter:latest
+    network_mode: host
+    volumes:
+      - ./ecobee-exporter:/data
+    environment:
+      - ECOBEE_POLL_INTERVAL=300 # Optional, default 300
+      - ECOBEE_METRICS_PORT=9101 # Optional, default 9101
+      - ECOBEE_DATA_DIR=/data # Optional, default /data
+    restart: unless-stopped
+```
+
+### Pairing (one-time)
 
 ```bash
 # Start the container (it will wait for pairing)
@@ -61,15 +45,11 @@ docker exec -it ecobee-exporter python -m ecobee_exporter pair
 # The poller automatically detects the new pairing file and starts polling
 ```
 
+This discovers the ecobee via mDNS, prompts for the HomeKit setup code, and saves pairing credentials.
+
 Host networking is required for mDNS discovery and direct TCP to the ecobee. Pairing data is persisted in the `./data/` directory.
 
-## Configuration
-
-| Environment Variable | Default | Description |
-|---------------------|---------|-------------|
-| `ECOBEE_PAIRING_FILE` | `./pairing.json` | Path to pairing data file |
-| `ECOBEE_POLL_INTERVAL` | `300` | Seconds between polls |
-| `ECOBEE_METRICS_PORT` | `9101` | Prometheus metrics HTTP port |
+Metrics are served at `http://localhost:9101/metrics`.
 
 ## Prometheus Scrape Config
 
@@ -78,4 +58,47 @@ scrape_configs:
   - job_name: ecobee
     static_configs:
       - targets: ['localhost:9101']
+```
+
+## Configuration
+
+| Environment Variable | Default | Description |
+|---------------------|---------|-------------|
+| `ECOBEE_DATA_DIR` | `.` | Directory for pairing and data files |
+| `ECOBEE_POLL_INTERVAL` | `300` | Seconds between polls |
+| `ECOBEE_METRICS_PORT` | `9101` | Prometheus metrics HTTP port |
+
+## Running with Python
+
+### Prerequisites
+
+- ecobee thermostat with HomeKit enabled
+- HomeKit setup code (8-digit code from the ecobee or its packaging)
+- Python 3.10+
+
+### Setup
+
+```bash
+pip install -r requirements.txt
+```
+
+### Pairing (one-time)
+
+```bash
+python -m ecobee_exporter pair --data-dir ./data
+```
+
+### Running
+
+```bash
+export ECOBEE_DATA_DIR=.
+export ECOBEE_POLL_INTERVAL=300
+export ECOBEE_METRICS_PORT=9101
+python -m ecobee_exporter run
+```
+
+## (publish image)
+```
+docker buildx build . -t ghcr.io/chickenbellyfin/ecobee-exporter:$(git rev-parse --short HEAD) --platform linux/amd64,linux/arm64 --push
+docker buildx build . -t ghcr.io/chickenbellyfin/ecobee-exporter:latest --platform linux/amd64,linux/arm64 --push
 ```
