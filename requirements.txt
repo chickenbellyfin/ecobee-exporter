@@ -1,0 +1,2 @@
+aiohomekit[zeroconf]
+prometheus_client
