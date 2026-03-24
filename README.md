@@ -40,7 +40,7 @@ services: # :9101
 docker compose up -d
 
 # Pair interactively from inside the running container
-docker exec -it ecobee-exporter python -m ecobee_exporter pair
+docker exec -it ecobee-exporter pair
 
 # The poller automatically detects the new pairing file and starts polling
 ```
@@ -64,7 +64,7 @@ scrape_configs:
 
 | Environment Variable | Default | Description |
 |---------------------|---------|-------------|
-| `ECOBEE_DATA_DIR` | `.` | Directory for pairing and data files |
+| `ECOBEE_DATA_DIR` | `/data` | Directory for pairing and data files |
 | `ECOBEE_POLL_INTERVAL` | `300` | Seconds between polls |
 | `ECOBEE_METRICS_PORT` | `9101` | Prometheus metrics HTTP port |
 
